@@ -47,7 +47,7 @@ public class DraftManagementService {
         
         // Create new mandate in DRAFT status
         Mandate mandate = Mandate.builder()
-                .id(adminApprovalService.getIdGenerator().getAndIncrement())
+                .id(adminApprovalService.generateNextId())
                 .companyRegistration(normalizedReg)
                 .title(StringUtils.capitalizeWords(requestDTO.getTitle()))
                 .description(requestDTO.getDescription())
@@ -57,7 +57,7 @@ public class DraftManagementService {
                 .updatedAt(LocalDateTime.now())
                 .build();
         
-        adminApprovalService.getMandateStore().put(mandate.getId(), mandate);
+        adminApprovalService.saveMandate(mandate);
         log.info("Draft mandate created with ID: {}", mandate.getId());
         
         return mapToResponseDTO(mandate);
@@ -74,10 +74,8 @@ public class DraftManagementService {
     public MandateResponseDTO updateDraft(Long id, MandateRequestDTO requestDTO) {
         log.info("Updating draft mandate ID: {}", id);
         
-        Mandate mandate = adminApprovalService.getMandateStore().get(id);
-        if (mandate == null) {
-            throw new IllegalArgumentException("Mandate not found with ID: " + id);
-        }
+        Mandate mandate = adminApprovalService.getMandateEntity(id)
+                .orElseThrow(() -> new IllegalArgumentException("Mandate not found with ID: " + id));
         
         if (!"DRAFT".equals(mandate.getStatus())) {
             throw new IllegalArgumentException("Can only update mandates in DRAFT status");
@@ -94,7 +92,7 @@ public class DraftManagementService {
         mandate.setDescription(requestDTO.getDescription());
         mandate.setUpdatedAt(LocalDateTime.now());
         
-        adminApprovalService.getMandateStore().put(mandate.getId(), mandate);
+        adminApprovalService.saveMandate(mandate);
         log.info("Draft mandate {} updated", id);
         
         return mapToResponseDTO(mandate);
@@ -107,7 +105,7 @@ public class DraftManagementService {
      */
     public List<MandateResponseDTO> getAllDrafts() {
         log.info("Retrieving all draft mandates");
-        return adminApprovalService.getMandateStore().values().stream()
+        return adminApprovalService.getAllMandateEntities().stream()
                 .filter(mandate -> "DRAFT".equals(mandate.getStatus()))
                 .map(this::mapToResponseDTO)
                 .toList();
@@ -121,7 +119,7 @@ public class DraftManagementService {
      */
     public Optional<MandateResponseDTO> getDraftById(Long id) {
         log.info("Retrieving draft mandate: {}", id);
-        return Optional.ofNullable(adminApprovalService.getMandateStore().get(id))
+        return adminApprovalService.getMandateEntity(id)
                 .filter(mandate -> "DRAFT".equals(mandate.getStatus()))
                 .map(this::mapToResponseDTO);
     }
@@ -137,10 +135,8 @@ public class DraftManagementService {
     public MandateResponseDTO submitForApproval(Long id) {
         log.info("Submitting draft {} for approval", id);
         
-        Mandate mandate = adminApprovalService.getMandateStore().get(id);
-        if (mandate == null) {
-            throw new IllegalArgumentException("Mandate not found with ID: " + id);
-        }
+        Mandate mandate = adminApprovalService.getMandateEntity(id)
+                .orElseThrow(() -> new IllegalArgumentException("Mandate not found with ID: " + id));
         
         if (!"DRAFT".equals(mandate.getStatus())) {
             throw new IllegalArgumentException("Can only submit mandates in DRAFT status");
@@ -148,7 +144,7 @@ public class DraftManagementService {
         
         mandate.setStatus("PENDING_APPROVAL");
         mandate.setUpdatedAt(LocalDateTime.now());
-        adminApprovalService.getMandateStore().put(mandate.getId(), mandate);
+        adminApprovalService.saveMandate(mandate);
         
         log.info("Draft {} submitted for approval", id);
         return mapToResponseDTO(mandate);

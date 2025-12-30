@@ -41,7 +41,7 @@ public class MandateSearchService {
             throw new IllegalArgumentException("Invalid company registration format");
         }
         
-        return adminApprovalService.getMandateStore().values().stream()
+        return adminApprovalService.getAllMandateEntities().stream()
                 .filter(mandate -> mandate.getCompanyRegistration().equals(normalizedReg))
                 .map(this::mapToResponseDTO)
                 .toList();
@@ -62,7 +62,7 @@ public class MandateSearchService {
         
         String normalizedStatus = status.toUpperCase();
         
-        return adminApprovalService.getMandateStore().values().stream()
+        return adminApprovalService.getAllMandateEntities().stream()
                 .filter(mandate -> mandate.getStatus().equals(normalizedStatus))
                 .map(this::mapToResponseDTO)
                 .toList();
@@ -75,7 +75,7 @@ public class MandateSearchService {
      */
     public List<MandateResponseDTO> getAllMandates() {
         log.info("Retrieving all mandates");
-        return adminApprovalService.getMandateStore().values().stream()
+        return adminApprovalService.getAllMandateEntities().stream()
                 .map(this::mapToResponseDTO)
                 .toList();
     }
@@ -93,7 +93,7 @@ public class MandateSearchService {
             throw new IllegalArgumentException("Creator name cannot be blank");
         }
         
-        return adminApprovalService.getMandateStore().values().stream()
+        return adminApprovalService.getAllMandateEntities().stream()
                 .filter(mandate -> mandate.getCreatedBy().equalsIgnoreCase(createdBy))
                 .map(this::mapToResponseDTO)
                 .toList();
@@ -111,7 +111,7 @@ public class MandateSearchService {
         log.info("Advanced search - registration: {}, status: {}, createdBy: {}", 
                 registration, status, createdBy);
         
-        return adminApprovalService.getMandateStore().values().stream()
+        return adminApprovalService.getAllMandateEntities().stream()
                 .filter(mandate -> {
                     if (ValidationUtils.isNotBlank(registration)) {
                         String normalizedReg = StringUtils.normalizeRegistration(registration);

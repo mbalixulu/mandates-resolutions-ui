@@ -36,10 +36,8 @@ public class AdminApprovalService {
     public MandateResponseDTO processApproval(AdminApprovalDTO approvalDTO) {
         log.info("Processing approval for mandate ID: {}", approvalDTO.getMandateId());
         
-        Mandate mandate = mandateStore.get(approvalDTO.getMandateId());
-        if (mandate == null) {
-            throw new IllegalArgumentException("Mandate not found with ID: " + approvalDTO.getMandateId());
-        }
+        Mandate mandate = getMandateEntity(approvalDTO.getMandateId())
+                .orElseThrow(() -> new IllegalArgumentException("Mandate not found with ID: " + approvalDTO.getMandateId()));
         
         if (!"PENDING_APPROVAL".equals(mandate.getStatus())) {
             throw new IllegalArgumentException("Mandate is not in pending approval status");
@@ -61,7 +59,7 @@ public class AdminApprovalService {
         }
         
         mandate.setUpdatedAt(LocalDateTime.now());
-        mandateStore.put(mandate.getId(), mandate);
+        saveMandate(mandate);
         
         return mapToResponseDTO(mandate);
     }
@@ -73,7 +71,7 @@ public class AdminApprovalService {
      */
     public List<MandateResponseDTO> getPendingApprovals() {
         log.info("Retrieving all pending approvals");
-        return mandateStore.values().stream()
+        return getAllMandateEntities().stream()
                 .filter(mandate -> "PENDING_APPROVAL".equals(mandate.getStatus()))
                 .map(this::mapToResponseDTO)
                 .toList();
@@ -87,7 +85,7 @@ public class AdminApprovalService {
      */
     public Optional<MandateResponseDTO> getMandateForApproval(Long id) {
         log.info("Retrieving mandate for approval: {}", id);
-        return Optional.ofNullable(mandateStore.get(id))
+        return getMandateEntity(id)
                 .filter(mandate -> "PENDING_APPROVAL".equals(mandate.getStatus()))
                 .map(this::mapToResponseDTO);
     }
@@ -110,12 +108,40 @@ public class AdminApprovalService {
                 .build();
     }
     
-    // Package-private method to allow other services to access the store
-    Map<Long, Mandate> getMandateStore() {
-        return mandateStore;
+    /**
+     * Generates the next unique ID for a mandate.
+     * 
+     * @return the next available ID
+     */
+    public Long generateNextId() {
+        return idGenerator.getAndIncrement();
     }
     
-    AtomicLong getIdGenerator() {
-        return idGenerator;
+    /**
+     * Saves a mandate to the data store.
+     * 
+     * @param mandate the mandate to save
+     */
+    public void saveMandate(Mandate mandate) {
+        mandateStore.put(mandate.getId(), mandate);
+    }
+    
+    /**
+     * Retrieves a mandate by ID.
+     * 
+     * @param id the mandate ID
+     * @return optional mandate
+     */
+    public Optional<Mandate> getMandateEntity(Long id) {
+        return Optional.ofNullable(mandateStore.get(id));
+    }
+    
+    /**
+     * Retrieves all mandates as entities.
+     * 
+     * @return list of all mandates
+     */
+    public List<Mandate> getAllMandateEntities() {
+        return List.copyOf(mandateStore.values());
     }
 }

@@ -35,7 +35,7 @@ class AdminApprovalServiceTest {
                 .createdBy("user1")
                 .createdAt(LocalDateTime.now())
                 .build();
-        adminApprovalService.getMandateStore().put(1L, mandate);
+        adminApprovalService.saveMandate(mandate);
         
         // Execute approval
         AdminApprovalDTO approvalDTO = AdminApprovalDTO.builder()
@@ -64,7 +64,7 @@ class AdminApprovalServiceTest {
                 .createdBy("user1")
                 .createdAt(LocalDateTime.now())
                 .build();
-        adminApprovalService.getMandateStore().put(2L, mandate);
+        adminApprovalService.saveMandate(mandate);
         
         // Execute rejection
         AdminApprovalDTO approvalDTO = AdminApprovalDTO.builder()
@@ -105,7 +105,7 @@ class AdminApprovalServiceTest {
                 .createdBy("user1")
                 .createdAt(LocalDateTime.now())
                 .build();
-        adminApprovalService.getMandateStore().put(3L, mandate);
+        adminApprovalService.saveMandate(mandate);
         
         AdminApprovalDTO approvalDTO = AdminApprovalDTO.builder()
                 .mandateId(3L)
@@ -127,7 +127,7 @@ class AdminApprovalServiceTest {
                 .createdBy("user1")
                 .createdAt(LocalDateTime.now())
                 .build();
-        adminApprovalService.getMandateStore().put(4L, mandate);
+        adminApprovalService.saveMandate(mandate);
         
         AdminApprovalDTO approvalDTO = AdminApprovalDTO.builder()
                 .mandateId(4L)
@@ -155,9 +155,9 @@ class AdminApprovalServiceTest {
                 .status("PENDING_APPROVAL")
                 .build();
         
-        adminApprovalService.getMandateStore().put(1L, mandate1);
-        adminApprovalService.getMandateStore().put(2L, mandate2);
-        adminApprovalService.getMandateStore().put(3L, mandate3);
+        adminApprovalService.saveMandate(mandate1);
+        adminApprovalService.saveMandate(mandate2);
+        adminApprovalService.saveMandate(mandate3);
         
         List<MandateResponseDTO> pending = adminApprovalService.getPendingApprovals();
         
@@ -171,7 +171,7 @@ class AdminApprovalServiceTest {
                 .status("PENDING_APPROVAL")
                 .title("Test")
                 .build();
-        adminApprovalService.getMandateStore().put(1L, mandate);
+        adminApprovalService.saveMandate(mandate);
         
         Optional<MandateResponseDTO> result = adminApprovalService.getMandateForApproval(1L);
         
@@ -192,7 +192,7 @@ class AdminApprovalServiceTest {
                 .status("DRAFT")
                 .title("Test")
                 .build();
-        adminApprovalService.getMandateStore().put(1L, mandate);
+        adminApprovalService.saveMandate(mandate);
         
         Optional<MandateResponseDTO> result = adminApprovalService.getMandateForApproval(1L);
         assertFalse(result.isPresent());
